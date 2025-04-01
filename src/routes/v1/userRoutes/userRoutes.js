@@ -10,12 +10,14 @@ import { validateRequest } from "../../../utils/zodValidator.js";
 import {
   changePasswordController,
   createUserController,
+  deleteUserController,
+  getAllUsersController,
   loginUserController,
   logoutController,
   updateUserProfileController,
   userProfileController,
 } from "../../../controllers/user.controller.js";
-import { authUser } from "../../../middleware/authMiddleware.js";
+import { authUser, } from "../../../middleware/authMiddleware.js";
 
 router.post("/register", validateRequest(registerSchema), createUserController);
 router.post("/login", validateRequest(loginSchema), loginUserController);
@@ -28,5 +30,8 @@ router.put(
   changePasswordController
 );
 router.post("/logout", authUser, logoutController);
+
+router.get('/all', authUser, getAllUsersController);
+router.delete("/delete/:id",  authUser, deleteUserController);
 
 export default router;

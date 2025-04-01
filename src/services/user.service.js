@@ -4,7 +4,8 @@ import UserError, { AuthenticationError } from "../utils/error.js";
 
 export const createUser = async ({ name, email, password }) => {
   const existingUser = await prisma.user.findUnique({ where: { email } });
-  if (existingUser) throw new UserError("Email is already registered");
+ 
+  if (existingUser) throw new UserError("Email is already Registered");
 
   return prisma.user.create({
     data: {
@@ -79,5 +80,11 @@ export const changePassword = async (userId, oldPassword, newPassword) => {
     data: {
       password: await hashPassword(newPassword)
     }
+  });
+};
+
+export const deleteUser = async (userId) => {
+  return prisma.user.delete({
+    where: { id: userId },
   });
 };

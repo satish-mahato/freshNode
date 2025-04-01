@@ -17,6 +17,7 @@ export const generateJWT = (user) => {
       id: user.id,
       name: user.name,
       email: user.email,
+      isAdmin: user.isAdmin
     },
     JWT_SECRET,
     { expiresIn: "24h" }

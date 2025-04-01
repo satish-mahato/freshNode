@@ -5,6 +5,8 @@ import {
   findUserById,
   updateUserProfile,
   changePassword,
+  getAllUsers,
+  deleteUser,
 } from "../services/user.service.js";
 import { getFromRedis, setInRedis } from "../utils/auth.js";
 
@@ -104,4 +106,36 @@ export const logoutController = controllerHandler(async (req, res) => {
   res.clearCookie("token");
 
   res.status(200).json({ message: "Logged out successfully" });
+});
+
+export const getAllUsersController = controllerHandler(async (req, res) => {
+  const users = await getAllUsers(req.user.id);
+  const sanitizedUsers = users.map(user => sanitizeUser(user));
+  res.status(200).json(sanitizedUsers);
+});
+
+
+export const deleteUserController = controllerHandler(async (req, res) => {
+  const userId = parseInt(req.params.id); 
+  const requestingUser = req.user;
+
+console.log("userid",userId);
+console.log("requesting id",requestingUser)
+  if (!requestingUser.isAdmin) {
+    return res.status(403).json({ message: "Only administrators can delete users" });
+  }
+
+  console.log("Deleting user ID:", userId);
+  await deleteUser(userId);
+  await clearUserCache(userId);
+
+  if (requestingUser.id === userId) {
+    const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
+    if (token) {
+      await redisClient.set(token, "logout", "EX", 86400);
+      res.clearCookie("token");
+    }
+  }
+
+  res.status(200).json({ message: "User deleted successfully" });
 });
