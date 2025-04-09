@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -9,33 +9,43 @@ export const galleryService = {
         title: data.title,
         date: data.date,
         files: {
-          create: files.map(file => ({
+          create: files.map((file) => ({
             fileName: file.originalname,
-            filePath: `files/${file.filename}`
-          }))
-        }
+            filePath: `files/${file.filename}`,
+          })),
+        },
       },
-      include: { files: true }
+      include: { files: true },
     });
   },
 
   async updateGallery(id, data, files) {
     return prisma.$transaction(async (tx) => {
+    
+      const updateData = { ...data };
+      if (updateData.date) {
+        updateData.date = new Date(updateData.date);
+      }
+
+      
       if (files?.length) {
+       
         await tx.galleryFile.deleteMany({ where: { galleryImgId: id } });
+
+       
         await tx.galleryFile.createMany({
-          data: files.map(file => ({
+          data: files.map((file) => ({
             fileName: file.originalname,
             filePath: `files/${file.filename}`,
-            galleryImgId: id
-          }))
+            galleryImgId: id,
+          })),
         });
       }
 
       return tx.galleryImg.update({
         where: { id },
-        data,
-        include: { files: true }
+        data: updateData,
+        include: { files: true },
       });
     });
   },
@@ -43,20 +53,20 @@ export const galleryService = {
   async getGallery(id) {
     return prisma.galleryImg.findUnique({
       where: { id },
-      include: { files: true }
+      include: { files: true },
     });
   },
 
   async deleteGallery(id) {
     return prisma.galleryImg.delete({
       where: { id },
-      include: { files: true }
+      include: { files: true },
     });
   },
 
   async getAllGalleries() {
     return prisma.galleryImg.findMany({
-      include: { files: true }
+      include: { files: true },
     });
-  }
+  },
 };

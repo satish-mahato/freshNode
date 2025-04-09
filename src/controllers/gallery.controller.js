@@ -1,7 +1,6 @@
-// controllers/gallery.controller.js
-import { galleryService } from '../services/gallery.service.js';
-import { cacheUtil } from '../utils/cache.util.js';
-import { fileService } from '../services/file.service.js';
+import { galleryService } from "../services/gallery.service.js";
+import { cacheUtil } from "../utils/cache.util.js";
+import { fileService } from "../services/file.service.js";
 
 export const galleryController = {
   async uploadGalleryFiles(req, res, next) {
@@ -32,21 +31,26 @@ export const galleryController = {
       const updates = req.body;
       const galleryId = parseInt(id);
 
+      const existingGallery = await galleryService.getGallery(galleryId);
+      if (!existingGallery) {
+        return res.status(404).json({ error: "Gallery not found" });
+      }
+
+      if (req.files?.length && existingGallery.files?.length) {
+        await fileService.deleteGalleryFiles(existingGallery.files);
+      }
+
       const updatedGallery = await galleryService.updateGallery(
         galleryId,
         updates,
         req.files
       );
 
-      if (!updatedGallery) {
-        return res.status(404).json({ error: "Gallery not found" });
-      }
-
       await cacheUtil.invalidate([
         cacheUtil.keys.gallery(id),
-        cacheUtil.keys.ALL_GALLERIES
+        cacheUtil.keys.ALL_GALLERIES,
       ]);
-      
+
       res.status(200).json({
         message: "Gallery updated successfully",
         data: updatedGallery,
@@ -55,7 +59,6 @@ export const galleryController = {
       next(err);
     }
   },
-
   async getGalleryFiles(req, res, next) {
     try {
       const { id } = req.params;
@@ -63,7 +66,7 @@ export const galleryController = {
 
       const gallery = await cacheUtil.getOrSet(cacheKey, async () => {
         const data = await galleryService.getGallery(parseInt(id));
-        if (!data) throw new Error('Gallery not found');
+        if (!data) throw new Error("Gallery not found");
         return data;
       });
 
@@ -86,9 +89,9 @@ export const galleryController = {
       await fileService.deleteGalleryFiles(gallery.files);
       await cacheUtil.invalidate([
         cacheUtil.keys.gallery(id),
-        cacheUtil.keys.ALL_GALLERIES
+        cacheUtil.keys.ALL_GALLERIES,
       ]);
-      
+
       res.json({ message: "Gallery deleted successfully" });
     } catch (err) {
       next(err);
@@ -109,7 +112,7 @@ export const galleryController = {
     } catch (err) {
       next(err);
     }
-  }
+  },
 };
 
 export default galleryController;

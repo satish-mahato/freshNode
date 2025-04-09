@@ -15,7 +15,7 @@ export const fileService = {
         await fs.unlink(filePath);
       } catch (err) {
         logger.error(`File deletion failed: ${file.filePath}`, err);
-        throw err; // Rethrow to handle in Promise.all
+        throw err;
       }
     });
 

@@ -37,3 +37,14 @@ model GalleryFile {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 }
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  filename  String   @unique
+  path      String
+  mimetype  String
+  size      Int
+  title     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

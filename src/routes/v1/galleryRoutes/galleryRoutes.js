@@ -23,7 +23,7 @@ router.get("/:id", galleryController.getGalleryFiles);
 
 router.delete("/:id", authUser, galleryController.deleteGalleryFiles);
 
-router.get("/", authUser,galleryController.getAllGalleryFiles);
+router.get("/",galleryController.getAllGalleryFiles);
 
 router.use(handleUploadErrors);
 

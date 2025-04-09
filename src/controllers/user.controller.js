@@ -119,13 +119,11 @@ export const deleteUserController = controllerHandler(async (req, res) => {
   const userId = parseInt(req.params.id); 
   const requestingUser = req.user;
 
-console.log("userid",userId);
-console.log("requesting id",requestingUser)
   if (!requestingUser.isAdmin) {
     return res.status(403).json({ message: "Only administrators can delete users" });
   }
 
-  console.log("Deleting user ID:", userId);
+
   await deleteUser(userId);
   await clearUserCache(userId);
 
