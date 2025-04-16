@@ -16,12 +16,14 @@ import {
   logoutController,
   updateUserProfileController,
   userProfileController,
+  userVerifyController,
 } from "../../../controllers/user.controller.js";
-import { authUser, } from "../../../middleware/authMiddleware.js";
+import { authUser } from "../../../middleware/authMiddleware.js";
 
 router.post("/register", validateRequest(registerSchema), createUserController);
 router.post("/login", validateRequest(loginSchema), loginUserController);
 router.get("/profile", authUser, userProfileController);
+router.get("/verify/:token", userVerifyController);
 router.put("/update", authUser, updateUserProfileController);
 router.put(
   "/change-password",
@@ -31,7 +33,7 @@ router.put(
 );
 router.post("/logout", authUser, logoutController);
 
-router.get('/all', authUser, getAllUsersController);
-router.delete("/delete/:id",  authUser, deleteUserController);
+router.get("/all", authUser, getAllUsersController);
+router.delete("/delete/:id", authUser, deleteUserController);
 
 export default router;

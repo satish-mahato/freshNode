@@ -7,6 +7,7 @@ import {
   changePassword,
   getAllUsers,
   deleteUser,
+  verifyTokenUser,
 } from "../services/user.service.js";
 import { getFromRedis, setInRedis } from "../utils/auth.js";
 
@@ -16,7 +17,6 @@ import {
   sanitizeUser,
 } from "../utils/controllerHelpers.js";
 
-
 const controllerHandler = (handler) => async (req, res) => {
   try {
     await handler(req, res);
@@ -24,7 +24,6 @@ const controllerHandler = (handler) => async (req, res) => {
     handleControllerError(res, error);
   }
 };
-
 
 export const createUserController = controllerHandler(async (req, res) => {
   const user = await createUser(req.body);
@@ -35,7 +34,6 @@ export const createUserController = controllerHandler(async (req, res) => {
     user: sanitizeUser(user),
   });
 });
-
 
 export const loginUserController = controllerHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -48,7 +46,6 @@ export const loginUserController = controllerHandler(async (req, res) => {
   });
 });
 
-
 export const userProfileController = controllerHandler(async (req, res) => {
   const redisKey = `user:profile:${req.user.id}`;
   const cachedProfile = await getFromRedis(redisKey);
@@ -60,7 +57,6 @@ export const userProfileController = controllerHandler(async (req, res) => {
 
   res.json(sanitizeUser(user));
 });
-
 
 export const updateUserProfileController = controllerHandler(
   async (req, res) => {
@@ -81,7 +77,6 @@ export const updateUserProfileController = controllerHandler(
   }
 );
 
-
 export const changePasswordController = controllerHandler(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
   await changePassword(req.user.id, oldPassword, newPassword);
@@ -93,7 +88,6 @@ export const changePasswordController = controllerHandler(async (req, res) => {
 
   res.status(200).json({ message: "Password changed successfully" });
 });
-
 
 export const logoutController = controllerHandler(async (req, res) => {
   const token = req.cookies?.token || req.headers.authorization?.split(" ")[1];
@@ -110,25 +104,42 @@ export const logoutController = controllerHandler(async (req, res) => {
 
 export const getAllUsersController = controllerHandler(async (req, res) => {
   const users = await getAllUsers(req.user.id);
-  const sanitizedUsers = users.map(user => sanitizeUser(user));
+  const sanitizedUsers = users.map((user) => sanitizeUser(user));
   res.status(200).json(sanitizedUsers);
 });
 
+export const userVerifyController = controllerHandler(async (req, res) => {
+  const { token } = req.params;
+
+  const verifiedUser = await verifyTokenUser({ token });
+
+  res.status(200).json({
+    success: true,
+    message: "Email successfully verified",
+    user: {
+      
+      email: verifiedUser.email,
+      isVerified: verifiedUser.isVerified,
+    },
+  });
+});
 
 export const deleteUserController = controllerHandler(async (req, res) => {
-  const userId = parseInt(req.params.id); 
+  const userId = parseInt(req.params.id);
   const requestingUser = req.user;
 
   if (!requestingUser.isAdmin) {
-    return res.status(403).json({ message: "Only administrators can delete users" });
+    return res
+      .status(403)
+      .json({ message: "Only administrators can delete users" });
   }
-
 
   await deleteUser(userId);
   await clearUserCache(userId);
 
   if (requestingUser.id === userId) {
-    const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
+    const token =
+      req.cookies?.token || req.headers.authorization?.split(" ")[1];
     if (token) {
       await redisClient.set(token, "logout", "EX", 86400);
       res.clearCookie("token");
