@@ -5,7 +5,7 @@ import {
   loginSchema,
   passwordSchema,
   registerSchema,
-} from "../../../schemas/user.schemas.js";
+} from "../../../schemas/user.schema.js";
 import { validateRequest } from "../../../utils/zodValidator.js";
 import {
   changePasswordController,
