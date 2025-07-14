@@ -14,6 +14,8 @@ model User {
   email     String   @unique
   password  String
   isAdmin   Boolean  @default(false)  
+  isVerified Boolean  @default(false)
+  verificationToken String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -47,4 +49,20 @@ model Image {
   title     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model NoticeImage {
+  id         Int      @id @default(autoincrement())
+  title      String
+  category   String
+  image      String
+ uploadTime DateTime @default(now())
+}
+
+model NoticePdf {
+  id         Int      @id @default(autoincrement())
+  title      String
+  category   String
+  pdf        String
+  uploadTime DateTime @default(now())  
 }

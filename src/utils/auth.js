@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config/serverConfig.js";
 import redisClient from "../services/redis.service.js";
+import crypto from "crypto";
 
 export const hashPassword = async (password) => {
   return await bcrypt.hash(password, 10);
@@ -41,3 +42,9 @@ export const setInRedis = async (key, value, ttlInSeconds = 3600) => {
     console.error("Redis SET error:", err);
   }
 };
+
+
+export const generateToken = () => {
+  return crypto.randomBytes(32).toString("hex");
+};
+

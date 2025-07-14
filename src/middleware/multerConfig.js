@@ -3,11 +3,9 @@ import path from "path";
 import crypto from "crypto";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { dirname } from "path";
 
-// Get directory name using ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Get __dirname equivalent in ES modules
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Ensure upload directory exists
 const uploadDir = path.join(__dirname, "../files");
@@ -49,8 +47,10 @@ const upload = multer({
 // Middleware to handle Multer errors
 const handleUploadErrors = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
+    // Handle Multer-specific errors
     return res.status(400).json({ error: err.message });
   } else if (err) {
+    // Handle other errors
     return res.status(400).json({ error: err.message });
   }
   next();

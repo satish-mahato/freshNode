@@ -1,3 +1,4 @@
+// middlewares/validateRequest.js
 import { z } from 'zod';
 
 export const validateRequest = (schema) => (req, res, next) => {

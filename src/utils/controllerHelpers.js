@@ -29,6 +29,9 @@ export const sanitizeUser = (user) => ({
   id: user.id,
   name: user.name,
   email: user.email,
+  isAdmin: user.isAdmin,
+  isVerified: user.isVerified,
+  verificationToken: user.verificationToken,
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
 });

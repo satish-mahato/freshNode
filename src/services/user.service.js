@@ -1,19 +1,49 @@
 import prisma from "../prisma/client.js";
-import { generateJWT, hashPassword, validatePassword } from "../utils/auth.js";
+import {
+  generateJWT,
+  generateToken,
+  hashPassword,
+  validatePassword,
+} from "../utils/auth.js";
 import UserError, { AuthenticationError } from "../utils/error.js";
+import { sendMail } from "../utils/mailSend.js";
 
 export const createUser = async ({ name, email, password }) => {
   const existingUser = await prisma.user.findUnique({ where: { email } });
- 
+
   if (existingUser) throw new UserError("Email is already Registered");
 
-  return prisma.user.create({
+  const user = prisma.user.create({
     data: {
       name,
       email,
       password: await hashPassword(password),
+      verificationToken: generateToken(),
+      isVerified: false,
+      isAdmin: false,
     },
   });
+  await sendMail((await user).email, (await user).verificationToken);
+  console.log("mail sent");
+
+  return user;
+};
+
+export const verifyTokenUser = async ({ token }) => {
+  const verifyUser = await prisma.user.findFirst({
+    where: { verificationToken: token },
+  });
+  if (!verifyUser) {
+    throw new AuthenticationError("invalid token");
+  }
+  const updateUser = await prisma.user.update({
+    where: { id: verifyUser.id },
+    data: {
+      isVerified: true,
+      verificationToken: null,
+    },
+  });
+  return updateUser;
 };
 
 export const loginUser = async (email, password) => {
@@ -78,8 +108,8 @@ export const changePassword = async (userId, oldPassword, newPassword) => {
   return prisma.user.update({
     where: { id: userId },
     data: {
-      password: await hashPassword(newPassword)
-    }
+      password: await hashPassword(newPassword),
+    },
   });
 };
 
